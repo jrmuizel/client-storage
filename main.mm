@@ -17,6 +17,8 @@
   GLuint mTextureUniform;
   GLuint mPosAttribute;
   GLuint mVertexbuffer;
+  GLuint fenceIds[2];
+  int lastFence;
 
   GLuint texIds[TEXTURE_COUNT];
 
@@ -74,6 +76,10 @@ int tex_offset = 0;
         if ([self initImageData])
                 [self loadTexturesWithClientStorage];
 
+        glGenFencesAPPLE(2, fenceIds);
+        lastFence = 0;
+        glSetFenceAPPLE(fenceIds[0]);
+        lastFence = 0;
         glEnable(GL_DEPTH_TEST);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -127,7 +133,7 @@ int tex_offset = 0;
 	};
 	
 	int f, t;
-	#if 0
+	#if 1
 	//glDeleteTextures(TEXTURE_COUNT, texIds);
 	//[self loadTexturesWithClientStorage];
 	memcpy(data + TEXTURE_WIDTH * TEXTURE_HEIGHT * 4 *  sizeof(GLubyte) * (tex_offset), data_bak, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4 * TEXTURE_COUNT *  sizeof(GLubyte));
@@ -166,8 +172,16 @@ int tex_offset = 0;
 	
 	
   [mContext flushBuffer];
-#if 0
-{ int color = 0xffffff00;
+  int nextFence = lastFence ^ 1;
+  printf("%d %d\n", fenceIds[nextFence], fenceIds[lastFence]);
+  glSetFenceAPPLE(fenceIds[nextFence]);
+  glFinishFenceAPPLE(fenceIds[lastFence]);
+  lastFence = nextFence;
+
+#if 1
+static int d;
+{ int color = 0xffffff00 | ((d & 0xf)<<4);
+d++;
 memset_pattern4(data + tex_offset*TEXTURE_WIDTH*TEXTURE_HEIGHT*4, &color, TEXTURE_COUNT*TEXTURE_WIDTH*TEXTURE_HEIGHT*4);
 #if 0
 		for (int c = tex_offset; c < TEXTURE_COUNT+tex_offset; c++) {
