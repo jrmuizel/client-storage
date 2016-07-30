@@ -3,8 +3,8 @@
  **/
 
 #define TEXTURE_COUNT           5
-#define TEXTURE_WIDTH           1024
-#define TEXTURE_HEIGHT          768
+#define TEXTURE_WIDTH           (1024*2)
+#define TEXTURE_HEIGHT          (768*2)
 
 #import <Cocoa/Cocoa.h>
 #include <OpenGL/gl.h>
@@ -68,87 +68,6 @@ int tex_offset = 0;
   [super dealloc];
 }
 
-static GLuint
-CompileShaders(const char* vertexShader, const char* fragmentShader)
-{
-  // Create the shaders
-  GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-  GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-  GLint result = GL_FALSE;
-  int infoLogLength;
-
-  // Compile Vertex Shader
-  glShaderSource(vertexShaderID, 1, &vertexShader , NULL);
-  glCompileShader(vertexShaderID);
-
-  // Check Vertex Shader
-  glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &result);
-  glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-  if (infoLogLength > 0) {
-    char* vertexShaderErrorMessage = new char[infoLogLength+1];
-    glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, vertexShaderErrorMessage);
-    printf("%s\n", vertexShaderErrorMessage);
-    delete[] vertexShaderErrorMessage;
-  }
-
-  // Compile Fragment Shader
-  glShaderSource(fragmentShaderID, 1, &fragmentShader , NULL);
-  glCompileShader(fragmentShaderID);
-
-  // Check Fragment Shader
-  glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result);
-  glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-  if (infoLogLength > 0) {
-    char* fragmentShaderErrorMessage = new char[infoLogLength+1];
-    glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, fragmentShaderErrorMessage);
-    printf("%s\n", fragmentShaderErrorMessage);
-    delete[] fragmentShaderErrorMessage;
-  }
-
-  // Link the program
-  GLuint programID = glCreateProgram();
-  glAttachShader(programID, vertexShaderID);
-  glAttachShader(programID, fragmentShaderID);
-  glLinkProgram(programID);
-
-  // Check the program
-  glGetProgramiv(programID, GL_LINK_STATUS, &result);
-  glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-  if (infoLogLength > 0) {
-    char* programErrorMessage = new char[infoLogLength+1];
-    glGetProgramInfoLog(programID, infoLogLength, NULL, programErrorMessage);
-    printf("%s\n", programErrorMessage);
-    delete[] programErrorMessage;
-  }
-
-  glDeleteShader(vertexShaderID);
-  glDeleteShader(fragmentShaderID);
-
-  return programID;
-}
-
-static GLuint
-CreateTexture(NSSize size, void (^drawCallback)(CGContextRef ctx))
-{
-  int width = size.width;
-  int height = size.height;
-  CGColorSpaceRef rgb = CGColorSpaceCreateDeviceRGB();
-  CGContextRef imgCtx = CGBitmapContextCreate(NULL, width, height, 8, width * 4,
-                                              rgb, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host);
-  CGColorSpaceRelease(rgb);
-  drawCallback(imgCtx);
-
-  GLuint texture = 0;
-  glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, CGBitmapContextGetData(imgCtx));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  return texture;
-}
-
 - (void)_initGL
 {  
         // Create OpenGL textures
@@ -208,13 +127,13 @@ CreateTexture(NSSize size, void (^drawCallback)(CGContextRef ctx))
 	};
 	
 	int f, t;
-	
+	#if 0
 	//glDeleteTextures(TEXTURE_COUNT, texIds);
 	//[self loadTexturesWithClientStorage];
 	memcpy(data + TEXTURE_WIDTH * TEXTURE_HEIGHT * 4 *  sizeof(GLubyte) * (tex_offset), data_bak, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4 * TEXTURE_COUNT *  sizeof(GLubyte));
 
 	[self reloadTexturesWithClientStorage];
-
+#endif
 
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -247,7 +166,10 @@ CreateTexture(NSSize size, void (^drawCallback)(CGContextRef ctx))
 	
 	
   [mContext flushBuffer];
+#if 0
 { int color = 0xffffff00;
+memset_pattern4(data + tex_offset*TEXTURE_WIDTH*TEXTURE_HEIGHT*4, &color, TEXTURE_COUNT*TEXTURE_WIDTH*TEXTURE_HEIGHT*4);
+#if 0
 		for (int c = tex_offset; c < TEXTURE_COUNT+tex_offset; c++) {
 
 			for (int w = 0; w < TEXTURE_WIDTH; w++) {
@@ -257,8 +179,10 @@ CreateTexture(NSSize size, void (^drawCallback)(CGContextRef ctx))
 			}
 		}
 	}
+        #endif
 	}
-        if (tex_offset == 0)
+     #endif
+     if (tex_offset == 0)
 		tex_offset = TEXTURE_COUNT;
 	else {
 		tex_offset = 0;
