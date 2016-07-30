@@ -175,16 +175,22 @@ int tex_offset = 0;
   int nextFence = lastFence ^ 1;
   printf("%d %d\n", fenceIds[nextFence], fenceIds[lastFence]);
   glSetFenceAPPLE(fenceIds[nextFence]);
-  glFinishFenceAPPLE(fenceIds[lastFence]);
+  //glFinishFenceAPPLE(fenceIds[lastFence]);
   lastFence = nextFence;
 
+  for (int i = 0; i < TEXTURE_COUNT; i++)
+  {
+          // Bind the rectange texture
+          glFinishObjectAPPLE(GL_TEXTURE, texIds[i+tex_offset]);
+  }
+
 #if 1
-static int d;
-{ int color = 0xffffff00 | ((d & 0xf)<<4);
-d++;
-memset_pattern4(data + tex_offset*TEXTURE_WIDTH*TEXTURE_HEIGHT*4, &color, TEXTURE_COUNT*TEXTURE_WIDTH*TEXTURE_HEIGHT*4);
+  static int d;
+  { int color = 0xffffff00 | ((d & 0xf)<<4);
+          d++;
+          memset_pattern4(data + tex_offset*TEXTURE_WIDTH*TEXTURE_HEIGHT*4, &color, TEXTURE_COUNT*TEXTURE_WIDTH*TEXTURE_HEIGHT*4);
 #if 0
-		for (int c = tex_offset; c < TEXTURE_COUNT+tex_offset; c++) {
+          for (int c = tex_offset; c < TEXTURE_COUNT+tex_offset; c++) {
 
 			for (int w = 0; w < TEXTURE_WIDTH; w++) {
 				for (int h = 0; h < TEXTURE_HEIGHT; h++) {
